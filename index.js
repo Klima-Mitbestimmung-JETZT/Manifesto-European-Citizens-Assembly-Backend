@@ -22,22 +22,30 @@ app.post("/signee", upload.single("logo"), (req, res) => {
   // res.sendFile(path.join(__dirname + '/contact-us.html'));
   //TODO
   //send email here
-  if (!req.body) return res.send("No body");
-  if (!req.body.organisation) return res.send("no organisation");
-  if (!req.body.website) return res.send("no website");
-  if (!req.body.signeeNames) return res.send("no signeeNames");
-  if (!req.body.email) return res.send("no email");
+  if (!req.body) return res.status(400).send("No body");
+  if (!req.body.organisation) return res.status(400).send("no organisation");
+  if (!req.body.website) return res.status(400).send("no website");
+  if (!req.body.listOfSigningNames)
+    return res.status(400).send("no listOfSigningNames");
+  if (!req.body.name) return res.status(400).send("no email");
+  if (!req.body.email) return res.status(400).send("no email");
   if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegebn</i>";
+  if (!req.body.message) req.body.message = "<i>Keine Nachricht eingegebn</i>";
 
   let message = `Folgender Eintrag ist auf der Webiste des offenen Briefs (https://www.klima-rat.org) eingegangen: <br><br>
   Meine Organisation: ${req.body.organisation}<br>
   Website: ${req.body.website}<br>
-  Die Namen der Unterzeichnenden: ${req.body.signeeNames}<br><br>
+  Die Namen der Unterzeichnenden: ${req.body.listOfSigningNames}<br><br>
 
   Ich bin damit einverstanden, dass das Logo unserer Organisation (entweder dieser Mail beigefügt oder von der Website unserer Organisation) auf der Website des Briefs angezeigt wird.<br><br>
   Bitte kontaktieren Sie mich ggf. unter diesen Daten für eine Verifizierung:<br>
+  Name: ${req.body.name}
   E-Mail: ${req.body.email}<br>
-  Telefon: ${req.body.phone}<br>`;
+  Telefon: ${req.body.phone}<br><br>
+  
+  Mit der Nachricht:<br>
+  ${req.body.message}
+  `;
 
   let attachment;
 
