@@ -2,11 +2,13 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const express = require("express");
+const cors = require("cors");
 const multer = require("multer");
 const fs = require("fs");
 const app = express();
 const log = console.log;
 const PORT = process.env.PORT || 3000;
+var morgan = require("morgan");
 
 var upload = multer();
 var bodyParser = require("body-parser");
@@ -17,6 +19,29 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(morgan("combined"));
+
+let whitelist = [
+  "http://localhost:4200",
+  "http://klima-rat.org",
+  "http://open-letter-mailer.herokuapp.com",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow requests with no origin
+      if (!origin) return callback(null, true);
+      if (whitelist.indexOf(origin) === -1) {
+        var message =
+          "The CORS policy for this origin doesnt " +
+          "allow access from the particular origin.";
+        return callback(new Error(message), false);
+      }
+      return callback(null, true);
+    },
+  })
+);
 
 app.post("/signee", upload.single("logo"), (req, res) => {
   // res.sendFile(path.join(__dirname + '/contact-us.html'));
@@ -38,8 +63,8 @@ app.post("/signee", upload.single("logo"), (req, res) => {
   Die Namen der Unterzeichnenden: ${req.body.listOfSigningNames}<br><br>
 
   Ich bin damit einverstanden, dass das Logo unserer Organisation (entweder dieser Mail beigefügt oder von der Website unserer Organisation) auf der Website des Briefs angezeigt wird.<br><br>
-  Bitte kontaktieren Sie mich ggf. unter diesen Daten für eine Verifizierung:<br>
-  Name: ${req.body.name}
+  Bitte kontaktieren Sie mich ggf. unter diesen Daten für eine Verifizierung:<br><br>
+  Name: ${req.body.name}<br>
   E-Mail: ${req.body.email}<br>
   Telefon: ${req.body.phone}<br><br>
   
@@ -49,13 +74,13 @@ app.post("/signee", upload.single("logo"), (req, res) => {
 
   let attachment;
 
-  if (req.file && req.file.fieldname === "logo") {
+  if (req.file) {
     attachment = {
       filename: req.file.originalname,
       content: Buffer.alloc(req.file.size, req.file.buffer),
     };
   } else {
-    log("no logo");
+    log("No logo");
   }
 
   sendMail(req.body.email, message, attachment)
