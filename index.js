@@ -6,7 +6,8 @@ const multer = require("multer");
 const fs = require("fs");
 const app = express();
 const log = console.log;
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
 var upload = multer();
 var bodyParser = require("body-parser");
 // Configuring our data parsing
