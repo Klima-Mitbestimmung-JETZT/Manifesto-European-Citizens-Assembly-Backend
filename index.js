@@ -42,6 +42,32 @@ app.use(
   })
 );
 
+app.post("/contact", (req, res) => {
+  if (!req.body) return res.status(400).send("No body");
+  if (!req.body.email) return res.status(400).send("No email");
+  if (!req.body.name) return res.status(400).send("No name");
+  if (!req.body.message) return res.status(400).send("No message");
+  if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegeben</i>";
+
+  let message = `Folgende Kontaktanfrage ist auf der Webiste des offenen Briefs (https://www.klima-rat.org) eingegangen: <br><br>
+  
+  Name: ${req.body.name}<br>
+  E-Mail: ${req.body.email}<br>
+  Telefon: ${req.body.phone}<br><br>
+  
+  Mit der Nachricht:<br>
+  ${req.body.message}`;
+
+  sendMail(req.body.mail, message)
+    .then((response) =>
+      res.status(200).send({ message: "Message sent succesfully" })
+    )
+    .catch((error) => {
+      log(err);
+      res.status(500).json({ message: "Internal Error" }).send();
+    });
+});
+
 app.post("/signee", upload.single("logo"), (req, res) => {
   // res.sendFile(path.join(__dirname + '/contact-us.html'));
   //TODO
@@ -53,8 +79,8 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     return res.status(400).send("no listOfSigningNames");
   if (!req.body.name) return res.status(400).send("no email");
   if (!req.body.email) return res.status(400).send("no email");
-  if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegebn</i>";
-  if (!req.body.message) req.body.message = "<i>Keine Nachricht eingegebn</i>";
+  if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegeben</i>";
+  if (!req.body.message) req.body.message = "<i>Keine Nachricht eingegeben</i>";
 
   let message = `Folgender Eintrag ist auf der Webiste des offenen Briefs (https://www.klima-rat.org) eingegangen: <br><br>
   Meine Organisation: ${req.body.organisation}<br>
