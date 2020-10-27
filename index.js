@@ -24,6 +24,7 @@ app.use(morgan("combined"));
 let whitelist = [
   "http://klima-rat.org",
   "http://open-letter-mailer.herokuapp.com",
+  "https://development-playground.herokuapp.com"
 ];
 
 app.use(
@@ -62,9 +63,9 @@ app.post("/contact", (req, res) => {
     .then((response) =>
       res.status(200).send({ message: "Message sent succesfully" })
     )
-    .catch((error) => {
+    .catch((err) => {
       log(err);
-      res.status(500).json({ message: "Internal Error" }).send();
+      res.status(500).json({ message: "Internal Error - Could not send Contact Mail" }).send();
     });
 });
 
@@ -114,7 +115,7 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     })
     .catch((err) => {
       log(err);
-      res.status(500).json({ message: "Internal Error" }).send();
+      res.status(500).json({ message: "Internal Error - Could not send Signee Mail" }).send();
     });
 });
 
