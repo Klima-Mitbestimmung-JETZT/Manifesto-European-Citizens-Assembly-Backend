@@ -79,7 +79,7 @@ app.post("/signee", upload.single("logo"), (req, res) => {
   if (!req.body.website) return res.status(400).send("no website");
   if (!req.body.listOfSigningNames)
     return res.status(400).send("no listOfSigningNames");
-  if (!req.body.name) return res.status(400).send("no email");
+  if (!req.body.name) return res.status(400).send("no name");
   if (!req.body.email) return res.status(400).send("no email");
   if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegeben</i>";
   if (!req.body.message) req.body.message = "<i>Keine Nachricht eingegeben</i>";
