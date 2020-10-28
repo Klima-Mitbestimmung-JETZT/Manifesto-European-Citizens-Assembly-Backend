@@ -24,7 +24,8 @@ app.use(morgan("combined"));
 let whitelist = [
   "http://klima-rat.org",
   "http://open-letter-mailer.herokuapp.com",
-  "https://development-playground.herokuapp.com"
+  "http://development-playground.herokuapp.com",
+  "http://localhost:4200"
 ];
 
 app.use(
@@ -59,7 +60,7 @@ app.post("/contact", (req, res) => {
   Mit der Nachricht:<br>
   ${req.body.message}`;
 
-  sendMail(req.body.mail, message)
+  sendMail(req.body.email, message)
     .then((response) =>
       res.status(200).send({ message: "Message sent succesfully" })
     )
