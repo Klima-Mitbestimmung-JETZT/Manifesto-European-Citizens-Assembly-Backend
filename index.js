@@ -22,9 +22,9 @@ app.use(express.json());
 app.use(morgan("combined"));
 
 let whitelist = [
-  "http://klima-rat.org",
-  "http://open-letter-mailer.herokuapp.com",
-  "http://development-playground.herokuapp.com",
+  "https://klima-rat.org",
+  "https://open-letter-mailer.herokuapp.com",
+  "https://development-playground.herokuapp.com",
   "http://localhost:4200"
 ];
 
