@@ -25,7 +25,7 @@ let whitelist = [
   "https://klima-rat.org",
   "https://open-letter-mailer.herokuapp.com",
   "https://development-playground.herokuapp.com",
-  "http://localhost:4200"
+  "http://localhost:4200",
 ];
 
 app.use(
@@ -51,6 +51,8 @@ app.post("/contact", (req, res) => {
   if (!req.body.message) return res.status(400).send("No message");
   if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegeben</i>";
 
+  res.status(200).send({ message: "Message received succesfully" });
+
   let message = `Folgende Kontaktanfrage ist auf der Webiste des offenen Briefs (https://www.klima-rat.org) eingegangen: <br><br>
   
   Name: ${req.body.name}<br>
@@ -66,7 +68,11 @@ app.post("/contact", (req, res) => {
     )
     .catch((err) => {
       log(err);
-      res.status(500).json({ message: "Internal Error - Could not send Contact Mail" }).send();
+      log(
+        `Internal Error - Could not send Contact request made by ${
+          req.body.email
+        }, with data: ${JSON.stringify(req.body)}`
+      );
     });
 });
 
@@ -83,6 +89,8 @@ app.post("/signee", upload.single("logo"), (req, res) => {
   if (!req.body.email) return res.status(400).send("no email");
   if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegeben</i>";
   if (!req.body.message) req.body.message = "<i>Keine Nachricht eingegeben</i>";
+
+  res.status(200).send({ message: "Message received succesfully" });
 
   let message = `Folgender Eintrag ist auf der Webiste des offenen Briefs (https://www.klima-rat.org) eingegangen: <br><br>
   Meine Organisation: ${req.body.organisation}<br>
@@ -112,11 +120,15 @@ app.post("/signee", upload.single("logo"), (req, res) => {
 
   sendMail(req.body.email, message, attachment)
     .then((response) => {
-      res.send({ message: "Message sent succesfully" });
+      log(`Message to ${req.body.email} send succesfully`);
     })
     .catch((err) => {
       log(err);
-      res.status(500).json({ message: "Internal Error - Could not send Signee Mail" }).send();
+      log(
+        `Internal Error - Could not send Signee request made by ${
+          req.body.email
+        }, with data: ${JSON.stringify(req.body)}`
+      );
     });
 });
 
