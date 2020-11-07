@@ -62,18 +62,18 @@ app.post("/contact", (req, res) => {
   Mit der Nachricht:<br>
   ${req.body.message}`;
 
-  sendMail(req.body.email, message)
-    .then((response) =>
-      res.status(200).send({ message: "Message sent succesfully" })
-    )
-    .catch((err) => {
+  sendMail(req.body.email, process.env.MAIL_CONTACT_SUBJECT, message).catch(
+    (err) => {
       log(err);
       log(
-        `Internal Error - Could not send Contact request made by ${
-          req.body.email
-        }, with data: ${JSON.stringify(req.body)}`
+        new Error(
+          `Could not send Contact request by ${
+            req.body.email
+          }, with data: ${JSON.stringify(req.body)})`
+        )
       );
-    });
+    }
+  );
 });
 
 app.post("/signee", upload.single("logo"), (req, res) => {
@@ -118,18 +118,16 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     log("No logo");
   }
 
-  sendMail(req.body.email, message, attachment)
-    .then((response) => {
-      log(`Message to ${req.body.email} send succesfully`);
-    })
-    .catch((err) => {
+  sendMail(req.body.email, process.env.MAIL_SUBJECT, message, attachment).catch(
+    (err) => {
       log(err);
       log(
         `Internal Error - Could not send Signee request made by ${
           req.body.email
         }, with data: ${JSON.stringify(req.body)}`
       );
-    });
+    }
+  );
 });
 
 // create reusable transporter object using the default SMTP transport
@@ -144,13 +142,13 @@ let transporter = nodemailer.createTransport({
 });
 
 // async..await is not allowed in global scope, must use a wrapper
-var sendMail = (from, message, attachment) => {
+var sendMail = (from, subject, message, attachment) => {
   return new Promise(async (resolve, reject) => {
     try {
       let transportObject = {
         from: from, // sender address
         to: process.env.MAIL_TO, // list of receivers
-        subject: process.env.MAIL_SUBJECT, // Subject line
+        subject: subject, // Subject line
         text: message, // plain text body
         html: message, // html body
       };
@@ -160,7 +158,8 @@ var sendMail = (from, message, attachment) => {
       // send mail with defined transport object
       let info = await transporter.sendMail(transportObject);
 
-      resolve("Message sent: " + info.messageId);
+      log(`Message sent: ${JSON.stringify(info)}`);
+      resolve();
     } catch (error) {
       reject(error);
     }
