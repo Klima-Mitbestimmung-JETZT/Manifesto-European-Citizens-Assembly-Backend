@@ -21,13 +21,9 @@ app.use(
 app.use(express.json());
 app.use(morgan("combined"));
 
-let whitelist = [
-  "https://klima-rat.org",
-  "https://open-letter-mailer.herokuapp.com",
-  "https://development-playground.herokuapp.com",
-  "http://localhost:4200",
-];
+let whitelist = process.env.WHITELIST_URLS.split(",");
 
+log(`Whitlelist: ${JSON.stringify(whitelist)}`);
 app.use(
   cors({
     origin: function (origin, callback) {
