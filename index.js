@@ -10,8 +10,12 @@ const log = console.log;
 const PORT = process.env.PORT || 3000;
 var morgan = require("morgan");
 
+// Load custom contentfulService
+const contentfulService = require("./contentful");
+
 var upload = multer();
 var bodyParser = require("body-parser");
+
 // Configuring our data parsing
 app.use(
   bodyParser.urlencoded({
@@ -128,6 +132,18 @@ app.post("/signee", upload.single("logo"), (req, res) => {
       );
     }
   );
+});
+
+app.get("/signees", async (err, res) => {
+  contentfulService
+    .getSignees()
+    .then((file) => {
+      res
+        .header("Content-Type", "text/csv, charset=utf-8")
+        .attachment("Aktuelle-Unterzeichner-des-Offenen-Briefs.csv")
+        .send(file);
+    })
+    .catch((err) => res.status(500).send(err));
 });
 
 // create reusable transporter object using the default SMTP transport
