@@ -4,7 +4,14 @@ const contentful = require("contentful-management");
 const { parse } = require("json2csv");
 
 // Configure the fields, which should be parsed from json into csv
-const fields = ["eMail", "ansprechpartnerin", "telefon", "name", "website"];
+const fields = [
+  "eMail",
+  "telefon",
+  "vorname",
+  "nachname",
+  "website",
+  "organisation",
+];
 const opts = { fields };
 
 const client = contentful.createClient({
@@ -50,7 +57,27 @@ module.exports.getSignees = () => {
             entries.items.forEach((entry) => {
               let signee = {};
               for (key in entry.fields) {
-                signee[key] = entry.fields[key][process.env.CONTENTFUL_LOCALE];
+                switch (key) {
+                  case "ansprechpartnerin":
+                    let ansprechpartnerin =
+                      entry.fields[key][process.env.CONTENTFUL_LOCALE];
+
+                    signee["vorname"] = ansprechpartnerin.substr(
+                      0,
+                      ansprechpartnerin.indexOf(" ")
+                    );
+                    signee["nachname"] = ansprechpartnerin.substr(
+                      ansprechpartnerin.indexOf(" ") + 1
+                    );
+                    break;
+                  case "name":
+                    signee["organisation"] =
+                      entry.fields[key][process.env.CONTENTFUL_LOCALE];
+                    break;
+                  default:
+                    signee[key] =
+                      entry.fields[key][process.env.CONTENTFUL_LOCALE];
+                }
               }
               signees.push(signee);
             });
