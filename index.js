@@ -112,10 +112,10 @@ app.post("/signee", upload.single("logo"), (req, res) => {
   ${req.body.message ? req.body.message : "<i>Keine Nachricht eingegeben</i>"}
   `;
 
-  let attachment;
+  let logo;
 
   if (req.file) {
-    attachment = {
+    logo = {
       filename: req.file.originalname,
       content: Buffer.alloc(req.file.size, req.file.buffer),
     };
@@ -123,16 +123,21 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     log("No logo");
   }
 
-  contentfulService.createSignee(req.body).catch((err) => {
-    log(
-      `Internal Error - Could not create Signee in Contentful for request made by ${
-        req.body.email
-      }, with data: ${JSON.stringify(req.body)}`
-    );
-    log(err);
-  });
+  contentfulService
+    .createSignee(req.body, logo)
+    .then((signee) => {
+      log(`Signee created: ${JSON.stringify(signee)}`);
+    })
+    .catch((err) => {
+      log(
+        `Internal Error - Could not create Signee in Contentful for request made by ${
+          req.body.email
+        }, with data: ${JSON.stringify(req.body)}`
+      );
+      log(err);
+    });
 
-  sendMail(req.body.email, process.env.MAIL_SUBJECT, message, attachment).catch(
+  sendMail(req.body.email, process.env.MAIL_SUBJECT, message, logo).catch(
     (err) => {
       log(err);
       log(

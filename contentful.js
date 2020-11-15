@@ -26,24 +26,57 @@ client.getSpace(process.env.CONTENTFUL_SPACE).then((space) => {
     .then((environment) => (this.environment = environment));
 });
 
-module.exports.createSignee = (signee) => {
+module.exports.createSignee = (signee, logo) => {
   return new Promise((resolve, reject) => {
     if (!this.environment) {
       reject("No environment");
     }
 
-    let fields = [];
-    for (key in signee) {
-      let field = {};
-      field[process.env.CONTENTFUL_LOCALE] = signee[key];
-      fields[key] = field;
-    }
+    let signeeFields = {
+      ansprechpartnerin: {},
+      website: {},
+      listOfSigningNames: {},
+      eMail: {},
+      telefon: {},
+      name: {},
+      logo: {}
+    };
+
+    signeeFields.ansprechpartnerin[process.env.CONTENTFUL_LOCALE] = signee.name;
+    signeeFields.listOfSigningNames[process.env.CONTENTFUL_LOCALE] =
+      signee.listOfSigningNames;
+    signeeFields.website[process.env.CONTENTFUL_LOCALE] = signee.website;
+    signeeFields.eMail[process.env.CONTENTFUL_LOCALE] = signee.email;
+    signeeFields.telefon[process.env.CONTENTFUL_LOCALE] = signee.phone;
+    signeeFields.name[process.env.CONTENTFUL_LOCALE] = signee.organisation;
+
+    let file = {};
+    file[process.env.CONTENTFUL_LOCALE] = {
+      contentType: "image/" + logo.filename.split(".").pop(),
+      fileName: logo.filename,
+      file: logo.content,
+    };
+
+    let logoFields = {
+      title: {},
+      file: file,
+    };
 
     this.environment
-      .createEntry("unterzeichnender", {
-        fields: fields,
+      .createAssetFromFiles({ fields: logoFields })
+      .then((asset) => asset.processForAllLocales())
+      .then((asset) => asset.publish())
+      .then((asset) => {
+        signeeFields.logo[process.env.CONTENTFUL_LOCALE] = {
+          sys: { type: "Link", linkType: "Asset", id: asset.sys.id },
+        };
+        this.environment
+          .createEntry("unterzeichnender", {
+            fields: signeeFields,
+          })
+          .then((response) => resolve(response));
       })
-      .then((response) => resolve(response))
+
       .catch((err) => reject(err));
   });
 };
