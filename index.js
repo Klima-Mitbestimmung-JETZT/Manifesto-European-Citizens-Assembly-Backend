@@ -1,17 +1,16 @@
 "use strict";
 require("dotenv").config();
-const nodemailer = require("nodemailer");
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
-const fs = require("fs");
 const app = express();
 const log = console.log;
 const PORT = process.env.PORT || 3000;
 var morgan = require("morgan");
 
-// Load custom contentfulService
+// Require implementations for connected Services
 const contentfulService = require("./contentful");
+const mailService = require("./mailService");
 
 var upload = multer();
 var bodyParser = require("body-parser");
@@ -67,8 +66,9 @@ app.post("/contact", (req, res) => {
   Mit der Nachricht:<br>
   ${req.body.message}`;
 
-  sendMail(req.body.email, process.env.MAIL_CONTACT_SUBJECT, message).catch(
-    (err) => {
+  mailService
+    .sendMail(req.body.email, process.env.MAIL_CONTACT_SUBJECT, message)
+    .catch((err) => {
       log(err);
       log(
         new Error(
@@ -77,8 +77,7 @@ app.post("/contact", (req, res) => {
           }, with data: ${JSON.stringify(req.body)})`
         )
       );
-    }
-  );
+    });
 });
 
 app.post("/signee", upload.single("logo"), (req, res) => {
@@ -132,16 +131,16 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     log(err);
   });
 
-  sendMail(req.body.email, process.env.MAIL_SUBJECT, message, attachment).catch(
-    (err) => {
+  mailService
+    .sendMail(req.body.email, process.env.MAIL_SUBJECT, message, attachment)
+    .catch((err) => {
       log(err);
       log(
         `Internal Error - Could not send Signee request made by ${
           req.body.email
         }, with data: ${JSON.stringify(req.body)}`
       );
-    }
-  );
+    });
 });
 
 app.get("/signees", async (err, res) => {
@@ -155,41 +154,5 @@ app.get("/signees", async (err, res) => {
     })
     .catch((err) => res.status(500).send(err));
 });
-
-// create reusable transporter object using the default SMTP transport
-let transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: process.env.MAIL_PORT,
-  secure: process.env.MAIL_SECURE === "true" ? true : false, // true for 465, false for other ports
-  auth: {
-    user: process.env.MAIL_USER, // generated ethereal user
-    pass: process.env.MAIL_PASSWORD, // generated ethereal password
-  },
-});
-
-// async..await is not allowed in global scope, must use a wrapper
-var sendMail = (from, subject, message, attachment) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let transportObject = {
-        from: from, // sender address
-        to: process.env.MAIL_TO, // list of receivers
-        subject: subject, // Subject line
-        text: message, // plain text body
-        html: message, // html body
-      };
-      if (attachment) {
-        transportObject.attachments = [attachment];
-      }
-      // send mail with defined transport object
-      let info = await transporter.sendMail(transportObject);
-
-      log(`Message sent: ${JSON.stringify(info)}`);
-      resolve();
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
 
 app.listen(PORT, () => log("Server is starting on PORT,", PORT));
