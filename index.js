@@ -53,7 +53,6 @@ app.post("/contact", (req, res) => {
   if (!req.body.email) return res.status(400).send("No email");
   if (!req.body.name) return res.status(400).send("No name");
   if (!req.body.message) return res.status(400).send("No message");
-  if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegeben</i>";
 
   res.status(200).send({ message: "Message received succesfully" });
 
@@ -61,7 +60,9 @@ app.post("/contact", (req, res) => {
   
   Name: ${req.body.name}<br>
   E-Mail: ${req.body.email}<br>
-  Telefon: ${req.body.phone}<br><br>
+  Telefon: ${
+    req.body.phone ? req.body.phone : "<i>Keine Telefonnummer eingegeben</i>"
+  }<br><br>
   
   Mit der Nachricht:<br>
   ${req.body.message}`;
@@ -91,8 +92,6 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     return res.status(400).send("no listOfSigningNames");
   if (!req.body.name) return res.status(400).send("no name");
   if (!req.body.email) return res.status(400).send("no email");
-  if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegeben</i>";
-  if (!req.body.message) req.body.message = "<i>Keine Nachricht eingegeben</i>";
 
   res.status(200).send({ message: "Message received succesfully" });
 
@@ -105,10 +104,12 @@ app.post("/signee", upload.single("logo"), (req, res) => {
   Bitte kontaktieren Sie mich ggf. unter diesen Daten für eine Verifizierung:<br><br>
   Name: ${req.body.name}<br>
   E-Mail: ${req.body.email}<br>
-  Telefon: ${req.body.phone}<br><br>
+  Telefon: ${
+    req.body.phone ? req.body.phone : "<i>Keine Telefonnummer eingegeben</i>"
+  }<br><br>
   
   Mit der Nachricht:<br>
-  ${req.body.message}
+  ${req.body.message ? req.body.message : "<i>Keine Nachricht eingegeben</i>"}
   `;
 
   let attachment;
