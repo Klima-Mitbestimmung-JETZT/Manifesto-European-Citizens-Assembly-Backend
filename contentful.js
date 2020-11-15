@@ -19,9 +19,6 @@ const client = contentful.createClient({
   accessToken: process.env.CONTENTFUL_MANAGEMENT_TOKEN,
 });
 
-var space;
-var environment;
-
 client.getSpace(process.env.CONTENTFUL_SPACE).then((space) => {
   this.space = space;
   this.space
@@ -29,9 +26,30 @@ client.getSpace(process.env.CONTENTFUL_SPACE).then((space) => {
     .then((environment) => (this.environment = environment));
 });
 
+module.exports.createSignee = (signee) => {
+  return new Promise((resolve, reject) => {
+    if (!this.environment) {
+      reject("No environment");
+    }
+
+    let fields = [];
+    for (key in signee) {
+      let field = {};
+      field[process.env.CONTENTFUL_LOCALE] = signee[key];
+      fields[key] = field;
+    }
+
+    this.environment
+      .createEntry("unterzeichnender", {
+        fields: fields,
+      })
+      .then((response) => resolve(response))
+      .catch((err) => reject(err));
+  });
+};
+
 module.exports.getSignees = () => {
   return new Promise((resolve, reject) => {
-    // This API call will request an entry with the specified ID from the space defined at the top, using a space-specific access token.
     if (!this.environment) {
       reject("No environment");
     }

@@ -123,6 +123,15 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     log("No logo");
   }
 
+  contentfulService.createSignee(req.body).catch((err) => {
+    log(
+      `Internal Error - Could not create Signee in Contentful for request made by ${
+        req.body.email
+      }, with data: ${JSON.stringify(req.body)}`
+    );
+    log(err);
+  });
+
   sendMail(req.body.email, process.env.MAIL_SUBJECT, message, attachment).catch(
     (err) => {
       log(err);
