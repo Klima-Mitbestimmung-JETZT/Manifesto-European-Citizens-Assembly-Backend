@@ -50,34 +50,45 @@ module.exports.createSignee = (signee, logo) => {
     signeeFields.telefon[process.env.CONTENTFUL_LOCALE] = signee.phone;
     signeeFields.name[process.env.CONTENTFUL_LOCALE] = signee.organisation;
 
-    let file = {};
-    file[process.env.CONTENTFUL_LOCALE] = {
-      contentType: "image/" + logo.filename.split(".").pop(),
-      fileName: logo.filename,
-      file: logo.content,
-    };
+    let logoFields;
 
-    let logoFields = {
-      title: {},
-      file: file,
-    };
+    if (logo) {
+      let file = {};
+      file[process.env.CONTENTFUL_LOCALE] = {
+        contentType: "image/" + logo.filename.split(".").pop(),
+        fileName: logo.filename,
+        file: logo.content,
+      };
 
-    this.environment
-      .createAssetFromFiles({ fields: logoFields })
-      .then((asset) => asset.processForAllLocales())
-      .then((asset) => asset.publish())
-      .then((asset) => {
-        signeeFields.logo[process.env.CONTENTFUL_LOCALE] = {
-          sys: { type: "Link", linkType: "Asset", id: asset.sys.id },
-        };
-        this.environment
-          .createEntry("unterzeichnender", {
-            fields: signeeFields,
-          })
-          .then((response) => resolve(response));
-      })
+      logoFields = {
+        title: {},
+        file: file,
+      };
+    }
 
-      .catch((err) => reject(err));
+    if (logoFields) {
+      this.environment
+        .createAssetFromFiles({ fields: logoFields })
+        .then((asset) => asset.processForAllLocales())
+        .then((asset) => asset.publish())
+        .then((asset) => {
+          signeeFields.logo[process.env.CONTENTFUL_LOCALE] = {
+            sys: { type: "Link", linkType: "Asset", id: asset.sys.id },
+          };
+          this.environment
+            .createEntry("unterzeichnender", {
+              fields: signeeFields,
+            })
+            .then((response) => resolve(response));
+        })
+        .catch((err) => reject(err));
+    } else {
+      this.environment
+        .createEntry("unterzeichnender", {
+          fields: signeeFields,
+        })
+        .then((response) => resolve(response));
+    }
   });
 };
 
