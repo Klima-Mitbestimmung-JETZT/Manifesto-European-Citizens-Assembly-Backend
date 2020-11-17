@@ -149,7 +149,7 @@ app.post("/signee", upload.single("logo"), (req, res) => {
   );
 });
 
-app.get("/signees", async (err, res) => {
+/*app.get("/signees", async (err, res) => {
   contentfulService
     .getSignees()
     .then((file) => {
@@ -159,7 +159,7 @@ app.get("/signees", async (err, res) => {
         .send(file);
     })
     .catch((err) => res.status(500).send(err));
-});
+});*/
 
 // create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({
