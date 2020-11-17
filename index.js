@@ -10,8 +10,12 @@ const log = console.log;
 const PORT = process.env.PORT || 3000;
 var morgan = require("morgan");
 
+// Load custom contentfulService
+const contentfulService = require("./contentful");
+
 var upload = multer();
 var bodyParser = require("body-parser");
+
 // Configuring our data parsing
 app.use(
   bodyParser.urlencoded({
@@ -45,7 +49,6 @@ app.post("/contact", (req, res) => {
   if (!req.body.email) return res.status(400).send("No email");
   if (!req.body.name) return res.status(400).send("No name");
   if (!req.body.message) return res.status(400).send("No message");
-  if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegeben</i>";
 
   res.status(200).send({ message: "Message received succesfully" });
 
@@ -53,7 +56,9 @@ app.post("/contact", (req, res) => {
   
   Name: ${req.body.name}<br>
   E-Mail: ${req.body.email}<br>
-  Telefon: ${req.body.phone}<br><br>
+  Telefon: ${
+    req.body.phone ? req.body.phone : "<i>Keine Telefonnummer eingegeben</i>"
+  }<br><br>
   
   Mit der Nachricht:<br>
   ${req.body.message}`;
@@ -83,8 +88,6 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     return res.status(400).send("no listOfSigningNames");
   if (!req.body.name) return res.status(400).send("no name");
   if (!req.body.email) return res.status(400).send("no email");
-  if (!req.body.phone) req.body.phone = "<i>Keine Telefonnummer eingegeben</i>";
-  if (!req.body.message) req.body.message = "<i>Keine Nachricht eingegeben</i>";
 
   res.status(200).send({ message: "Message received succesfully" });
 
@@ -97,16 +100,18 @@ app.post("/signee", upload.single("logo"), (req, res) => {
   Bitte kontaktieren Sie mich ggf. unter diesen Daten für eine Verifizierung:<br><br>
   Name: ${req.body.name}<br>
   E-Mail: ${req.body.email}<br>
-  Telefon: ${req.body.phone}<br><br>
+  Telefon: ${
+    req.body.phone ? req.body.phone : "<i>Keine Telefonnummer eingegeben</i>"
+  }<br><br>
   
   Mit der Nachricht:<br>
-  ${req.body.message}
+  ${req.body.message ? req.body.message : "<i>Keine Nachricht eingegeben</i>"}
   `;
 
-  let attachment;
+  let logo;
 
   if (req.file) {
-    attachment = {
+    logo = {
       filename: req.file.originalname,
       content: Buffer.alloc(req.file.size, req.file.buffer),
     };
@@ -114,7 +119,21 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     log("No logo");
   }
 
-  sendMail(req.body.email, process.env.MAIL_SUBJECT, message, attachment).catch(
+  contentfulService
+    .createSignee(req.body, logo)
+    .then((signee) => {
+      log(`Signee created: ${JSON.stringify(signee)}`);
+    })
+    .catch((err) => {
+      log(
+        `Internal Error - Could not create Signee in Contentful for request made by ${
+          req.body.email
+        }, with data: ${JSON.stringify(req.body)}`
+      );
+      log(err);
+    });
+
+  sendMail(req.body.email, process.env.MAIL_SUBJECT, message, logo).catch(
     (err) => {
       log(err);
       log(
@@ -125,6 +144,18 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     }
   );
 });
+
+/*app.get("/signees", async (err, res) => {
+  contentfulService
+    .getSignees()
+    .then((file) => {
+      res
+        .header("Content-Type", "text/csv, charset=utf-8")
+        .attachment("Aktuelle-Unterzeichner-des-Offenen-Briefs.csv")
+        .send(file);
+    })
+    .catch((err) => res.status(500).send(err));
+});*/
 
 // create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({
