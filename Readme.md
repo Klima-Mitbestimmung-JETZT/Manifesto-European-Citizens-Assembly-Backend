@@ -11,5 +11,5 @@ MAIL_TO=Mailadress to which the requests are forwarded
 MAIL_SUBJECT=String for the Mail Subject of signee requests
 MAIL_CONTACT_SUBJECT=String for the Mail Subject of contact requests
 CONTENTFUL_SPACE=Contentful SPACE ID
-CONTENTFUL_ACCESS_KEY=Contentful API Key
+CONTENTFUL_MANAGEMENT_TOKEN=Contentful API Key
 WHITELIST_URLS=Comma seperated URLs

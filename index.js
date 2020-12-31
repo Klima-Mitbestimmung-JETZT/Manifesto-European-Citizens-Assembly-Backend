@@ -173,7 +173,7 @@ var sendMail = (from, subject, message, attachment) => {
   return new Promise(async (resolve, reject) => {
     try {
       let transportObject = {
-        from: from, // sender address
+        from: process.env.MAIL_FROM, // sender address
         to: process.env.MAIL_TO, // list of receivers
         subject: subject, // Subject line
         text: message, // plain text body
