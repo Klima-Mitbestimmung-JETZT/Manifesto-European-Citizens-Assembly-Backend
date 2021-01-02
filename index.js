@@ -78,7 +78,7 @@ app.post("/contact", (req, res) => {
   );
 });
 
-app.post("/signee", upload.single("logo"), (req, res) => {
+app.post("/organisation", upload.single("logo"), (req, res) => {
   // res.sendFile(path.join(__dirname + '/contact-us.html'));
   //TODO
   //send email here
@@ -122,13 +122,13 @@ app.post("/signee", upload.single("logo"), (req, res) => {
   }
 
   contentfulService
-    .createSignee(req.body, logo)
+    .createOrganisation(req.body, logo)
     .then((signee) => {
-      log(`Signee created: ${JSON.stringify(signee)}`);
+      log(`Organisation created: ${JSON.stringify(signee)}`);
     })
     .catch((err) => {
       log(
-        `Internal Error - Could not create Signee in Contentful for request made by ${
+        `Internal Error - Could not create Organisation in Contentful for request made by ${
           req.body.email
         }, with data: ${JSON.stringify(req.body)}`
       );
@@ -139,7 +139,7 @@ app.post("/signee", upload.single("logo"), (req, res) => {
     (err) => {
       log(err);
       log(
-        `Internal Error - Could not send Signee request made by ${
+        `Internal Error - Could not send signing request made by ${
           req.body.email
         }, with data: ${JSON.stringify(req.body)}`
       );

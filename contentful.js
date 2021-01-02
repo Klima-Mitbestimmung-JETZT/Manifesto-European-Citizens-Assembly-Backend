@@ -5,10 +5,10 @@ const { parse } = require("json2csv");
 
 // Configure the fields, which should be parsed from json into csv
 const fields = [
-  "eMail",
-  "telefon",
-  "vorname",
-  "nachname",
+  "email",
+  "phone",
+  "firstname",
+  "lastname",
   "website",
   "organisation",
 ];
@@ -26,29 +26,29 @@ client.getSpace(process.env.CONTENTFUL_SPACE).then((space) => {
     .then((environment) => (this.environment = environment));
 });
 
-module.exports.createSignee = (signee, logo) => {
+module.exports.createOrganisation = (organisation, logo) => {
   return new Promise((resolve, reject) => {
     if (!this.environment) {
       reject("No environment");
     }
 
-    let signeeFields = {
-      ansprechpartnerin: {},
+    let organisationFields = {
+      contactPerson: {},
       website: {},
       listOfSigningNames: {},
-      eMail: {},
-      telefon: {},
+      email: {},
+      phone: {},
       name: {},
-      logo: {}
+      logo: {},
     };
 
-    signeeFields.ansprechpartnerin[process.env.CONTENTFUL_LOCALE] = signee.name;
-    signeeFields.listOfSigningNames[process.env.CONTENTFUL_LOCALE] =
-      signee.listOfSigningNames;
-    signeeFields.website[process.env.CONTENTFUL_LOCALE] = signee.website;
-    signeeFields.eMail[process.env.CONTENTFUL_LOCALE] = signee.email;
-    signeeFields.telefon[process.env.CONTENTFUL_LOCALE] = signee.phone;
-    signeeFields.name[process.env.CONTENTFUL_LOCALE] = signee.organisation;
+    organisationFields.contactPerson[process.env.CONTENTFUL_LOCALE] = organisation.name;
+    organisationFields.listOfSigningNames[process.env.CONTENTFUL_LOCALE] =
+    organisation.listOfSigningNames;
+    organisationFields.website[process.env.CONTENTFUL_LOCALE] = organisation.website;
+    organisationFields.email[process.env.CONTENTFUL_LOCALE] = organisation.email;
+    organisationFields.phone[process.env.CONTENTFUL_LOCALE] = organisation.phone;
+    organisationFields.name[process.env.CONTENTFUL_LOCALE] = organisation.organisation;
 
     let logoFields;
 
@@ -72,20 +72,20 @@ module.exports.createSignee = (signee, logo) => {
         .then((asset) => asset.processForAllLocales())
         .then((asset) => asset.publish())
         .then((asset) => {
-          signeeFields.logo[process.env.CONTENTFUL_LOCALE] = {
+          organisationFields.logo[process.env.CONTENTFUL_LOCALE] = {
             sys: { type: "Link", linkType: "Asset", id: asset.sys.id },
           };
           this.environment
-            .createEntry("unterzeichnender", {
-              fields: signeeFields,
+            .createEntry("organisation", {
+              fields: organisationFields,
             })
             .then((response) => resolve(response));
         })
         .catch((err) => reject(err));
     } else {
       this.environment
-        .createEntry("unterzeichnender", {
-          fields: signeeFields,
+        .createEntry("organisation", {
+          fields: organisationFields,
         })
         .then((response) => resolve(response));
     }
@@ -111,7 +111,7 @@ module.exports.getSignees = () => {
 
         this.environment
           .getEntries({
-            content_type: "unterzeichnender",
+            content_type: "organisation",
             "sys.id[in]": signeeIdsQueryString,
             order: "fields.name",
           })
@@ -120,15 +120,15 @@ module.exports.getSignees = () => {
               let signee = {};
               for (key in entry.fields) {
                 switch (key) {
-                  case "ansprechpartnerin":
+                  case "contactPerson":
                     let ansprechpartnerin =
                       entry.fields[key][process.env.CONTENTFUL_LOCALE];
 
-                    signee["vorname"] = ansprechpartnerin.substr(
+                    signee["firstname"] = ansprechpartnerin.substr(
                       0,
                       ansprechpartnerin.indexOf(" ")
                     );
-                    signee["nachname"] = ansprechpartnerin.substr(
+                    signee["lastname"] = ansprechpartnerin.substr(
                       ansprechpartnerin.indexOf(" ") + 1
                     );
                     break;
