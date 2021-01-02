@@ -52,18 +52,19 @@ app.post("/contact", (req, res) => {
 
   res.status(200).send({ message: "Message received succesfully" });
 
-  let message = `Folgende Kontaktanfrage ist auf der Webiste des offenen Briefs (https://www.klima-rat.org) eingegangen: <br><br>
+  let subject = process.env.MAIL_CONTACT_SUBJECT + req.body.email;
+  let message = `The following contact request has been received: <br><br>
   
   Name: ${req.body.name}<br>
   E-Mail: ${req.body.email}<br>
-  Telefon: ${
-    req.body.phone ? req.body.phone : "<i>Keine Telefonnummer eingegeben</i>"
+  Phone: ${
+    req.body.phone ? req.body.phone : "<i>No phone number entered</i>"
   }<br><br>
   
-  Mit der Nachricht:<br>
+  With the message:<br>
   ${req.body.message}`;
 
-  sendMail(req.body.email, process.env.MAIL_CONTACT_SUBJECT, message).catch(
+  sendMail(req.body.email, subject, message).catch(
     (err) => {
       log(err);
       log(
@@ -91,21 +92,22 @@ app.post("/signee", upload.single("logo"), (req, res) => {
 
   res.status(200).send({ message: "Message received succesfully" });
 
-  let message = `Folgender Eintrag ist auf der Webiste des offenen Briefs (https://www.klima-rat.org) eingegangen: <br><br>
-  Meine Organisation: ${req.body.organisation}<br>
-  Website: ${req.body.website}<br>
-  Die Namen der Unterzeichnenden: ${req.body.listOfSigningNames}<br><br>
+  let subject = process.env.MAIL_SIGN_SUBJECT + req.body.email;
 
-  Ich bin damit einverstanden, dass das Logo unserer Organisation (entweder dieser Mail beigefügt oder von der Website unserer Organisation) auf der Website des Briefs angezeigt wird.<br><br>
-  Bitte kontaktieren Sie mich ggf. unter diesen Daten für eine Verifizierung:<br><br>
+  let message = `The following contact request has been received: <br><br>
+  My organisation: ${req.body.organisation}<br>
+  Website: ${req.body.website}<br>
+  Names of signees: ${req.body.listOfSigningNames}<br><br>
+
+  I would like to co-sign the manifesto on behalf of my organization and agree that the name of the organization, its logo, the URL of its website and the names of the signatories will be published on the manifesto. <br><br>
   Name: ${req.body.name}<br>
   E-Mail: ${req.body.email}<br>
-  Telefon: ${
-    req.body.phone ? req.body.phone : "<i>Keine Telefonnummer eingegeben</i>"
+  Phone: ${
+    req.body.phone ? req.body.phone : "<i>No phone number entered</i>"
   }<br><br>
   
-  Mit der Nachricht:<br>
-  ${req.body.message ? req.body.message : "<i>Keine Nachricht eingegeben</i>"}
+  With the message:<br>
+  ${req.body.message ? req.body.message : "<i>No message entered</i>"}
   `;
 
   let logo;
@@ -133,7 +135,7 @@ app.post("/signee", upload.single("logo"), (req, res) => {
       log(err);
     });
 
-  sendMail(req.body.email, process.env.MAIL_SUBJECT, message, logo).catch(
+  sendMail(req.body.email, subject, message, logo).catch(
     (err) => {
       log(err);
       log(
